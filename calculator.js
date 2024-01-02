@@ -1,6 +1,8 @@
 let keys = document.querySelectorAll('.keybutton')
 let screen = document.querySelector('.screen > p')
+let overflow_screen = document.querySelector('.screen')
 let last_oper_was_equal = false
+let last_oper_was_calc = false
 let last_result = 0
 keys.forEach(function(elem) {
   elem.addEventListener('click', function(e) {
@@ -8,15 +10,49 @@ keys.forEach(function(elem) {
       screen.innerText = last_result
       last_oper_was_equal = false
     }
-    type_a_value(e)
+    type_a_value(e, 'click')
+    overflow_screen.scrollTop = overflow_screen.scrollHeight
   })
 })
+document.addEventListener('keyup', function(e) {
+  if (['Enter', 'Backspace', 'c', '*', '/', 'p', '=', '-', '+', '(', ')', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(e.key)) {
+    if (last_oper_was_equal) {
+      screen.innerText = last_result
+      last_oper_was_equal = false
+    }
+    type_a_value(e, 'keyup')
+    overflow_screen.scrollTop = overflow_screen.scrollHeight
+  }
+})
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Backspace') {
+    if (last_oper_was_equal) {
+      screen.innerText = last_result
+      last_oper_was_equal = false
+    }
+    type_a_value(e, 'keydown')
+    overflow_screen.scrollTop = overflow_screen.scrollHeight
+  }
+})
 
-function type_a_value(event) {
+function parse_pressed_keybores_key(key) {
+  if (key === 'Backspace') return '←'
+  if (key === 'Enter') return '='
+  if (key === '*') return '×'
+  if (key === '/') return '÷'
+  if (key === 'p') return 'xy'
+  if (key === 'c') return 'C'
+  if (['=', '-', '+', '(', ')', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(key)) return key
+  return
+}
+
+function type_a_value(event, event_type) {
   let operators = ['×', '÷', '-', '+', '(', ')']
-  let pressed_key = event.target.innerText
+  let pressed_key = event_type === 'click' ? event.target.innerText : parse_pressed_keybores_key(event.key)
   let text_to_add = ''
   if (pressed_key === '=') {
+    if (screen.innerText.split(' ').length < 3) return
+    if (last_oper_was_calc) return
     let result = make_a_calc(screen.innerText)
     screen.innerText += ' = ' + result
     last_oper_was_equal = true
@@ -35,10 +71,6 @@ function type_a_value(event) {
     }
     return
   }
-  if (['×', '÷', '-', '+', 'xy'].includes(pressed_key)) {
-    let temp_array = screen.innerText.split(' ')
-
-  }
   if (operators.includes(pressed_key)) {
     text_to_add = ' ' + pressed_key + ' '
   } else if (pressed_key === 'xy') {
@@ -47,11 +79,12 @@ function type_a_value(event) {
     text_to_add = pressed_key
   }
   if (['×', '÷', '-', '+', 'xy'].includes(pressed_key)) {
+    last_oper_was_calc = true
     let temp_array = screen.innerText.split(' ')
     if (['×', '÷', '-', '+', '**'].includes(temp_array.at(-1))) {
       temp_array[temp_array.length-1] = text_to_add.trim()
       screen.innerHTML = temp_array.join(' ') + ' '
-    } else {
+    } else if(!(temp_array.at(-1) === '(')) {
       screen.innerHTML += text_to_add
     }
   } else if (pressed_key === '.') {
@@ -62,19 +95,26 @@ function type_a_value(event) {
   } else if (screen.innerText === '0') {
     screen.innerHTML = text_to_add
   } else if (pressed_key === '(') {
+    last_oper_was_calc = true
     let temp_array = screen.innerText.split(' ')
     temp_array = temp_array.filter(elem => !['', ' ', '(', ')'].includes(elem))
-    if (isNaN(parseFloat(temp_array.at(-1)))) {
+    if (!isNaN(parseFloat(temp_array.at(-2)))) {
       screen.innerHTML += text_to_add
     }
   } else if (pressed_key === ')') {
     let temp_array = screen.innerText.split(' ')
     temp_array = temp_array.filter(elem => !['', ' ', '(', ')'].includes(elem))
-    if (!isNaN(parseFloat(temp_array.at(-1)))) {
+    if (isNaN(parseFloat(temp_array.at(-2)))) {
       screen.innerHTML += text_to_add
     }
   } else {
-    screen.innerHTML += text_to_add
+    let temp_array = screen.innerText.split(' ')
+    if (!(temp_array.at(-1).includes([')']))) {
+      screen.innerHTML += text_to_add
+    }
+  }
+  if (last_oper_was_calc && !['×', '÷', '-', '+', 'xy', '('].includes(pressed_key)) {
+    last_oper_was_calc = false
   }
 }
 

@@ -23,6 +23,10 @@ body {
 	--keybutton-size: 3rem;
 }
 
+html {
+	color-scheme: light dark;
+}
+
 .container {
     width: max-content;
     margin: 0 auto;
@@ -60,7 +64,7 @@ sup {
 .keybutton:hover,
 .keybutton:focus {
 	background-color: rgb(216, 232, 247);
-	border: 2px solid black;
+	border: 1px solid black;
 }
 .wide {
 	grid-column: span 2;
@@ -84,4 +88,21 @@ sup {
 	text-align: right;
 	overflow-wrap: break-word;
 
+}
+
+@media (prefers-color-scheme: dark) {
+	body {
+		background-color: rgb(46, 40, 32);
+	}
+	.keybutton:hover,
+	.keybutton:focus {
+	background-color: rgb(36, 40, 43);
+	border: 1px solid rgb(163, 163, 163);
+	}
+	.keybutton {
+		border: 1px solid rgb(218, 207, 207);
+	}
+	.screen {
+		border: 1px solid rgb(204, 201, 201);
+	}
 }
